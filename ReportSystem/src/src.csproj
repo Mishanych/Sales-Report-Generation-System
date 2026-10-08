@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="ReportSystem.Api\Contracts\Requests\" />
+      <Folder Include="ReportSystem.Api\Contracts\Responses\" />
+      <Folder Include="ReportSystem.Api\Controllers\" />
+      <Folder Include="ReportSystem.Api\Mapping\" />
+      <Folder Include="ReportSystem.Application\Abstractions\" />
+      <Folder Include="ReportSystem.Application\Generation\" />
+      <Folder Include="ReportSystem.Application\Models\" />
+      <Folder Include="ReportSystem.Application\Reports\" />
+      <Folder Include="ReportSystem.Domain\Exceptions\" />
+      <Folder Include="ReportSystem.Infrastructure\Messaging\" />
+      <Folder Include="ReportSystem.Infrastructure\Pdf\" />
+      <Folder Include="ReportSystem.Infrastructure\Persistence\Configurations\" />
+      <Folder Include="ReportSystem.Infrastructure\Persistence\Migrations\" />
+      <Folder Include="ReportSystem.Infrastructure\Persistence\Repositories\" />
+      <Folder Include="ReportSystem.Infrastructure\Storage\" />
+    </ItemGroup>
+
+</Project>
