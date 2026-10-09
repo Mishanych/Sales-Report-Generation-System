@@ -41,7 +41,7 @@ public class CreateReportService
             ).ToList()
         );
         
-        _reportRepository.AddReport(report);
+        await _reportRepository.AddReportAsync(report);
 
         var message = new GenerateReportRequested();
         await _reportMessagePublisher.PublishReportRequestedAsync(message, cancellationToken);

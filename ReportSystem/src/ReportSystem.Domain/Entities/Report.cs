@@ -13,6 +13,8 @@ public class Report
     public IReadOnlyCollection<ReportItem> Items => _items.AsReadOnly();
     private readonly List<ReportItem> _items;
     
+    public Report(){ }
+    
     public Report(Guid id, string name, DateTime periodStart, DateTime periodEnd, List<ReportItem> items)
     {
         Id = id;
