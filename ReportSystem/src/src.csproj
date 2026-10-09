@@ -12,14 +12,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="ReportSystem.Api\Contracts\Requests\" />
       <Folder Include="ReportSystem.Api\Contracts\Responses\" />
       <Folder Include="ReportSystem.Api\Controllers\" />
       <Folder Include="ReportSystem.Api\Mapping\" />
-      <Folder Include="ReportSystem.Application\Abstractions\" />
       <Folder Include="ReportSystem.Application\Generation\" />
-      <Folder Include="ReportSystem.Application\Models\" />
-      <Folder Include="ReportSystem.Application\Reports\" />
       <Folder Include="ReportSystem.Domain\Exceptions\" />
       <Folder Include="ReportSystem.Infrastructure\Messaging\" />
       <Folder Include="ReportSystem.Infrastructure\Pdf\" />
