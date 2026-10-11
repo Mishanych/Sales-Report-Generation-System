@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using ReportSystem.Application.Models;
 using ReportSystem.Domain.Entities;
 using ReportSystem.Domain.Enums;
 
@@ -6,11 +7,6 @@ namespace ReportSystem.Application.Reports;
 
 public class ReportCalculationService
 {
-    /// <summary>
-    /// e.g. Mechanical Keyboard: 5 × EUR 80.00 = EUR 400.00
-    /// </summary>
-    private const string ProductBreakdown = "{0}: {1} x {2} {3} = {2} {4}";
-    
     public decimal GetTotalRevenue(IEnumerable<ReportItem> items)
     {
         decimal revenue = 0;
@@ -35,23 +31,33 @@ public class ReportCalculationService
         return quantityOfUnits;
     }
     
-    public decimal GetRevenueByCategory(IEnumerable<ReportItem> items, Category category)
+    public List<PdfReportItemModel> GetReportItemsBreakdown(IEnumerable<ReportItem> items)
     {
-        var filteredItems = items.Where(i => i.Category == category);
-        return GetTotalRevenue(filteredItems);
+        return items.Select(item => new PdfReportItemModel
+        {
+            ProductName = item.ProductName,
+            CategoryName = item.Category.ToString(),
+            Quantity = item.Quantity,
+            UnitPrice = item.UnitPrice,
+            TotalPrice = item.UnitPrice * item.Quantity,
+            Currency = item.Currency
+        }).ToList();
     }
     
-    public string GetReportItemsBreakdown(IEnumerable<ReportItem> items)
+    public List<PdfCategoryStatsModel> GetCategoryStats(IEnumerable<ReportItem> items)
     {
-        var sb = new StringBuilder();
-        sb.AppendLine("Products:");
-        
-        foreach (ReportItem item in items)
-        {
-            decimal totalPrice = item.UnitPrice * item.Quantity;
-            sb.AppendFormat(ProductBreakdown, item.ProductName, item.Quantity, item.Currency, item.UnitPrice, totalPrice);
-        }
-        
-        return sb.ToString();
+        return items
+            .GroupBy(item => item.Category)
+            .Select(group => 
+            {
+                var totalRevenue = group.Sum(x => x.Quantity * x.UnitPrice);
+            
+                return new PdfCategoryStatsModel
+                {
+                    CategoryName = group.Key.ToString(),
+                    TotalRevenue = totalRevenue,
+                };
+            })
+            .ToList();
     }
 }

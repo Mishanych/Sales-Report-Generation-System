@@ -1,8 +1,8 @@
-﻿using ReportSystem.Domain.Entities;
+﻿using ReportSystem.Application.Models;
 
 namespace ReportSystem.Application.Abstractions;
 
 public interface IReportGenerator
 {
-    Task GenerateReportAsync(Report report, CancellationToken cancellationToken = default);
+    Task<byte[]> GenerateReportAsync(PdfReportModel reportModel, CancellationToken cancellationToken = default);
 }

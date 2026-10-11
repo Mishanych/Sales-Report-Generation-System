@@ -13,8 +13,6 @@ public class Report
     public IReadOnlyCollection<ReportItem> Items => _items.AsReadOnly();
     private readonly List<ReportItem> _items;
     
-    public Report(){ }
-    
     public Report(Guid id, string name, DateTime periodStart, DateTime periodEnd, List<ReportItem> items)
     {
         Id = id;
@@ -22,7 +20,7 @@ public class Report
         PeriodStart = periodStart;
         PeriodEnd = periodEnd;
         _items = items;
-        Status = ReportStatus.Queued;
+        Status = ReportStatus.Pending;
     }
 
     public void MarkAsProcessing()
