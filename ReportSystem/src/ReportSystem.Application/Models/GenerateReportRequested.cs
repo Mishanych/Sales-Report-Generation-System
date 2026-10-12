@@ -1,6 +1,5 @@
 ﻿namespace ReportSystem.Application.Models;
 
-public class GenerateReportRequested
-{
-    
-}
+public record GenerateReportRequested(
+    Guid ReportId,
+    DateTime RequestedAt);

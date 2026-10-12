@@ -23,8 +23,6 @@
       <Folder Include="ReportSystem.Domain\Exceptions\" />
       <Folder Include="ReportSystem.Infrastructure\Persistence\Migrations\" />
       <Folder Include="ReportSystem.Infrastructure\Persistence\Repositories\" />
-      <Folder Include="ReportSystem.Worker\Consumers\" />
-      <Folder Include="ReportSystem.Worker\HostedServices\" />
     </ItemGroup>
 
 </Project>

@@ -1,11 +1,10 @@
-﻿using System.Text;
+﻿using ReportSystem.Application.Abstractions;
 using ReportSystem.Application.Models;
 using ReportSystem.Domain.Entities;
-using ReportSystem.Domain.Enums;
 
 namespace ReportSystem.Application.Reports;
 
-public class ReportCalculationService
+public class ReportCalculationService : IReportCalculationService
 {
     public decimal GetTotalRevenue(IEnumerable<ReportItem> items)
     {
@@ -19,9 +18,9 @@ public class ReportCalculationService
         return revenue;
     }
     
-    public decimal GetTotalUnitsSold(IEnumerable<ReportItem> items)
+    public int GetTotalUnitsSold(IEnumerable<ReportItem> items)
     {
-        decimal quantityOfUnits = 0;
+        int quantityOfUnits = 0;
 
         foreach (ReportItem item in items)
         {
