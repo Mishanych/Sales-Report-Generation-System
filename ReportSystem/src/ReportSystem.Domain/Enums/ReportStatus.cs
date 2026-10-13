@@ -3,7 +3,7 @@
 public enum ReportStatus
 {
     None = 0,
-    Pending,
+    Queued,
     Processing,
     Completed,
     Failed,

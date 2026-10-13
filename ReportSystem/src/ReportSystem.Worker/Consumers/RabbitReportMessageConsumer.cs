@@ -5,6 +5,7 @@ using RabbitMQ.Client.Events;
 using ReportSystem.Application.Abstractions;
 using ReportSystem.Application.Models;
 using ReportSystem.Domain.Entities;
+using ReportSystem.Worker.Publishers;
 
 namespace ReportSystem.Worker.Consumers;
 
@@ -27,6 +28,10 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
         var reportRepository = scope.ServiceProvider.GetRequiredService<IReportRepository>();
         var calculationService = scope.ServiceProvider.GetRequiredService<IReportCalculationService>();
         var pdfReportGenerator = scope.ServiceProvider.GetRequiredService<IReportGenerator>();
+        var reportFileStorage = scope.ServiceProvider.GetRequiredService<IReportFileStorage>();
+        var statusPublisher = scope.ServiceProvider.GetRequiredService<IReportStatusPublisher>();
+        
+        Guid currentReportId = Guid.Empty;
         
         try
         {
@@ -36,7 +41,10 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
 
             if (message != null)
             {
-                Report? report = await reportRepository.GetReportByIdAsync(message.ReportId, cancellationToken);
+                currentReportId = message.ReportId;
+                await statusPublisher.PublishStartedAsync(currentReportId, cancellationToken);
+                
+                Report? report = await reportRepository.GetReportByIdAsync(currentReportId, cancellationToken);
                 if (report != null)
                 {
                     PdfReportModel pdfReportModel = new PdfReportModel(
@@ -46,15 +54,33 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
                         calculationService.GetReportItemsBreakdown(report.Items),
                         calculationService.GetCategoryStats(report.Items));
                     
-                    await pdfReportGenerator.GenerateReportAsync(pdfReportModel, cancellationToken);
+                    await reportRepository.UpdateReportAsync(report, cancellationToken);
+                    
+                    byte[] pdfData = await pdfReportGenerator.GenerateReportAsync(pdfReportModel, cancellationToken);
+                    string fileName = $"{currentReportId}.pdf";
+                    await reportFileStorage.SaveAsync(fileName, pdfData, cancellationToken);
+                    
+                    await statusPublisher.PublishCompletedAsync(message.ReportId, fileName, cancellationToken);
+                }
+                else
+                {
+                    await statusPublisher.PublishFailedAsync(currentReportId, "Report not found", cancellationToken);
                 }
             }
 
             await Channel.BasicAckAsync(deliveryTag: deliverEventArgs.DeliveryTag, multiple: false,
                 cancellationToken: cancellationToken);
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
+            if (currentReportId != Guid.Empty)
+            {
+                await statusPublisher.PublishFailedAsync(
+                    currentReportId, 
+                    $"Invalid message payload format: {ex.Message}", 
+                    CancellationToken.None);
+            }
+            
             // issue with data
             await Channel.BasicNackAsync(
                 deliveryTag: deliverEventArgs.DeliveryTag, 
@@ -62,16 +88,13 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
                 requeue: false,
                 cancellationToken: CancellationToken.None);
         }
-        catch (HttpRequestException)
+        catch (Exception ex)
         {
-            await Channel.BasicNackAsync(
-                deliveryTag: deliverEventArgs.DeliveryTag, 
-                multiple: false, 
-                requeue: true,
-                cancellationToken: CancellationToken.None);
-        }
-        catch (Exception)
-        {
+            if (currentReportId != Guid.Empty)
+            {
+                await statusPublisher.PublishFailedAsync(currentReportId, ex.Message, CancellationToken.None);
+            }
+            
             await Channel.BasicNackAsync(
                 deliveryTag: deliverEventArgs.DeliveryTag, 
                 multiple: false, 

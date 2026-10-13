@@ -8,36 +8,28 @@ using ReportSystem.Infrastructure.Messaging.Options;
 
 namespace ReportSystem.Infrastructure.Messaging;
 
-public class RabbitReportMessagePublisher : IReportMessagePublisher
+public class ReportRequestPublisher : IReportMessagePublisher
 {
     private readonly IRabbitMqConnectionManager _connectionManager;
-    private readonly IOptions<RabbitMqOptions> _options;
+    private readonly RabbitMqOptions _options;
 
-    public RabbitReportMessagePublisher(IRabbitMqConnectionManager connectionManager, IOptions<RabbitMqOptions> options)
+    public ReportRequestPublisher(IRabbitMqConnectionManager connectionManager, IOptions<RabbitMqOptions> options)
     {
         _connectionManager = connectionManager;
-        _options = options;
+        _options = options.Value;
     }
     
     public async Task PublishReportRequestedAsync(GenerateReportRequested message, CancellationToken cancellationToken = default)
     {
         var connection = await _connectionManager.GetConnectionAsync(cancellationToken);
-        using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
-
-        await channel.QueueDeclareAsync(
-            queue: _options.Value.ReportGenerationQueue,
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null,
-            cancellationToken: cancellationToken);
+        await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
         var json = JsonSerializer.Serialize(message);
         var body = Encoding.UTF8.GetBytes(json);
         
         await channel.BasicPublishAsync(
-            exchange: string.Empty,
-            routingKey: _options.Value.ReportGenerationQueue,
+            exchange: _options.ReportsExchange,
+            routingKey: _options.ReportRequestedRoutingKey,
             body: body,
             cancellationToken: cancellationToken);
     }

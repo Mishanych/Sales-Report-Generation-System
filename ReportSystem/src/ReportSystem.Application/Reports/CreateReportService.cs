@@ -24,6 +24,7 @@ public class CreateReportService
             request.Name,
             request.PeriodStart,
             request.PeriodEnd,
+            string.Empty,
             request.Items.Select(item =>
                 {
                     var category = Enum.TryParse<Category>(item.Category, ignoreCase: true, out var parsedCategory)
