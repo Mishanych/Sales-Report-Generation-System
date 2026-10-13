@@ -28,5 +28,9 @@ public class ReportGenerationStartedEventHandler : IReportStatusEventHandler
             report.MarkAsProcessing();
             await _repository.UpdateReportAsync(report, cancellationToken);
         }
+        else
+        {
+            // TODO: add logger
+        }
     }
 }

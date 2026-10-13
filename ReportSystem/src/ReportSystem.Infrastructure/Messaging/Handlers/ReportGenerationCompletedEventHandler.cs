@@ -28,5 +28,9 @@ public class ReportGenerationCompletedEventHandler : IReportStatusEventHandler
             report.MarkAsCompleted(reportEvent.Filename);
             await _repository.UpdateReportAsync(report, cancellationToken);
         }
+        else
+        {
+            // TODO: add logger
+        }
     }
 }

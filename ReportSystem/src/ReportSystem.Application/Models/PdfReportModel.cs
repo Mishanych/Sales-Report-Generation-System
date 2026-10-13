@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
-using ReportSystem.Domain.Entities;
-using ReportSystem.Domain.Enums;
+using ReportSystem.Application.Reports;
 
 namespace ReportSystem.Application.Models;
 
@@ -13,18 +12,18 @@ public class PdfReportModel
     public int TotalUnitsSold { get; init; }
     public decimal TotalRevenue { get; init; }
     
-    public IReadOnlyList<PdfReportItemModel> Items { get; init; }
-    public IReadOnlyList<PdfCategoryStatsModel> CategoryStats { get; init; }
-    
-    public PdfReportModel(Report report, int totalUnitsSold, decimal totalRevenue, List<PdfReportItemModel> items, List<PdfCategoryStatsModel>  categoryStats)
+    public IReadOnlyCollection<PdfReportItemModel> Items { get; init; }
+    public IReadOnlyCollection<PdfCategoryStatsModel> CategoryStats { get; init; }
+
+    public PdfReportModel(string reportName, DateTime periodStart, DateTime periodEnd, ReportCalculatedData calculatedData)
     {
-        ReportName = report.Name;
-        ReportPeriod = FormatPeriod(report.PeriodStart, report.PeriodEnd);
-        TotalUnitsSold = totalUnitsSold;
-        TotalRevenue = totalRevenue;
-        
-        Items = items;
-        CategoryStats = categoryStats;
+        ReportName = reportName;
+        ReportPeriod = FormatPeriod(periodStart, periodEnd);
+        TotalUnitsSold = calculatedData.TotalUnitsSold;
+        TotalRevenue = calculatedData.TotalRevenue;
+
+        Items = calculatedData.ItemsBreakdown;
+        CategoryStats = calculatedData.CategoryStats;
     }
 
     private string FormatPeriod(DateTime startPeriod, DateTime endPeriod)

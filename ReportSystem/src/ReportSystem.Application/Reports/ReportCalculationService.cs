@@ -6,11 +6,20 @@ namespace ReportSystem.Application.Reports;
 
 public class ReportCalculationService : IReportCalculationService
 {
-    public decimal GetTotalRevenue(IEnumerable<ReportItem> items)
+    public ReportCalculatedData GetReportCalculatedData(IReadOnlyCollection<ReportItemDto> items)
+    {
+        return new ReportCalculatedData(
+            GetTotalUnitsSold(items),
+            GetTotalRevenue(items),
+            GetReportItemsBreakdown(items),
+            GetCategoryStats(items));
+    }
+
+    public decimal GetTotalRevenue(IEnumerable<ReportItemDto> items)
     {
         decimal revenue = 0;
 
-        foreach (ReportItem item in items)
+        foreach (ReportItemDto item in items)
         {
             revenue += item.UnitPrice * item.Quantity;
         }
@@ -18,11 +27,11 @@ public class ReportCalculationService : IReportCalculationService
         return revenue;
     }
     
-    public int GetTotalUnitsSold(IEnumerable<ReportItem> items)
+    public int GetTotalUnitsSold(IEnumerable<ReportItemDto> items)
     {
         int quantityOfUnits = 0;
 
-        foreach (ReportItem item in items)
+        foreach (ReportItemDto item in items)
         {
             quantityOfUnits += item.Quantity;
         }
@@ -30,11 +39,11 @@ public class ReportCalculationService : IReportCalculationService
         return quantityOfUnits;
     }
     
-    public List<PdfReportItemModel> GetReportItemsBreakdown(IEnumerable<ReportItem> items)
+    public List<PdfReportItemModel> GetReportItemsBreakdown(IEnumerable<ReportItemDto> items)
     {
         return items.Select(item => new PdfReportItemModel
         {
-            ProductName = item.ProductName,
+            ProductName = item.Name,
             CategoryName = item.Category.ToString(),
             Quantity = item.Quantity,
             UnitPrice = item.UnitPrice,
@@ -43,7 +52,7 @@ public class ReportCalculationService : IReportCalculationService
         }).ToList();
     }
     
-    public List<PdfCategoryStatsModel> GetCategoryStats(IEnumerable<ReportItem> items)
+    public List<PdfCategoryStatsModel> GetCategoryStats(IEnumerable<ReportItemDto> items)
     {
         return items
             .GroupBy(item => item.Category)

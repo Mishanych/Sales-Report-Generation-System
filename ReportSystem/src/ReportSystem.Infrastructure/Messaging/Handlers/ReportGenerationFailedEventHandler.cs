@@ -27,5 +27,9 @@ public class ReportGenerationFailedEventHandler : IReportStatusEventHandler
             report.MarkAsFailed(reportEvent.ErrorMessage);
             await _repository.UpdateReportAsync(report, cancellationToken);
         }
+        else
+        {
+            // TODO: add logger
+        }
     }
 }

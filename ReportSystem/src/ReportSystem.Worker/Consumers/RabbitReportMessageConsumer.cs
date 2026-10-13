@@ -4,7 +4,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using ReportSystem.Application.Abstractions;
 using ReportSystem.Application.Models;
-using ReportSystem.Domain.Entities;
 using ReportSystem.Worker.Publishers;
 
 namespace ReportSystem.Worker.Consumers;
@@ -25,7 +24,6 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
         var cancellationToken = cts.Token;
         
         using var scope = _serviceProvider.CreateScope();
-        var reportRepository = scope.ServiceProvider.GetRequiredService<IReportRepository>();
         var calculationService = scope.ServiceProvider.GetRequiredService<IReportCalculationService>();
         var pdfReportGenerator = scope.ServiceProvider.GetRequiredService<IReportGenerator>();
         var reportFileStorage = scope.ServiceProvider.GetRequiredService<IReportFileStorage>();
@@ -43,29 +41,20 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
             {
                 currentReportId = message.ReportId;
                 await statusPublisher.PublishStartedAsync(currentReportId, cancellationToken);
-                
-                Report? report = await reportRepository.GetReportByIdAsync(currentReportId, cancellationToken);
-                if (report != null)
-                {
-                    PdfReportModel pdfReportModel = new PdfReportModel(
-                        report,
-                        calculationService.GetTotalUnitsSold(report.Items),
-                        calculationService.GetTotalRevenue(report.Items),
-                        calculationService.GetReportItemsBreakdown(report.Items),
-                        calculationService.GetCategoryStats(report.Items));
+
+                var reportCalculatedData = calculationService.GetReportCalculatedData(message.Items);
+
+                PdfReportModel pdfReportModel = new PdfReportModel(
+                    message.ReportName,
+                    message.ReportStartDate,
+                    message.ReportEndDate,
+                    reportCalculatedData);
                     
-                    await reportRepository.UpdateReportAsync(report, cancellationToken);
+                byte[] pdfData = await pdfReportGenerator.GenerateReportAsync(pdfReportModel, cancellationToken);
+                string fileName = $"{currentReportId}.pdf";
+                await reportFileStorage.SaveAsync(fileName, pdfData, cancellationToken);
                     
-                    byte[] pdfData = await pdfReportGenerator.GenerateReportAsync(pdfReportModel, cancellationToken);
-                    string fileName = $"{currentReportId}.pdf";
-                    await reportFileStorage.SaveAsync(fileName, pdfData, cancellationToken);
-                    
-                    await statusPublisher.PublishCompletedAsync(message.ReportId, fileName, cancellationToken);
-                }
-                else
-                {
-                    await statusPublisher.PublishFailedAsync(currentReportId, "Report not found", cancellationToken);
-                }
+                await statusPublisher.PublishCompletedAsync(message.ReportId, fileName, cancellationToken);
             }
 
             await Channel.BasicAckAsync(deliveryTag: deliverEventArgs.DeliveryTag, multiple: false,
