@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using ReportSystem.Application.Abstractions;
 using ReportSystem.Application.Models;
+using ReportSystem.Infrastructure.Messaging.Constants;
 using ReportSystem.Infrastructure.Messaging.Options;
 
 namespace ReportSystem.Infrastructure.Messaging;
@@ -27,9 +28,19 @@ public class ReportRequestPublisher : IReportMessagePublisher
         var json = JsonSerializer.Serialize(message);
         var body = Encoding.UTF8.GetBytes(json);
         
+        var properties = new BasicProperties
+        {
+            Headers = new Dictionary<string, object?>
+            {
+                { RabbitMqHeaders.ReportId, message.ReportId.ToString() }
+            }
+        };
+        
         await channel.BasicPublishAsync(
             exchange: _options.ReportsExchange,
             routingKey: _options.ReportRequestedRoutingKey,
+            mandatory: false,
+            basicProperties: properties,
             body: body,
             cancellationToken: cancellationToken);
     }

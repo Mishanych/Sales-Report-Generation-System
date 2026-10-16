@@ -44,9 +44,22 @@ public class CreateReportService
         
         await _reportRepository.AddReportAsync(report, cancellationToken);
 
+        var reportItemDtos = report.Items
+            .Select(item => new ReportItemDto(
+                item.ProductName,
+                item.Quantity,
+                item.UnitPrice,
+                item.Category.ToString(),
+                item.Currency))
+            .ToList();
+        
         var message = new GenerateReportRequested(
-            ReportId: report.Id,
-            RequestedAt: DateTime.UtcNow);
+            report.Id,
+            report.Name,
+            report.PeriodStart,
+            report.PeriodEnd,
+            reportItemDtos,
+            DateTime.UtcNow);
         await _reportMessagePublisher.PublishReportRequestedAsync(message, cancellationToken);
     }
 }
