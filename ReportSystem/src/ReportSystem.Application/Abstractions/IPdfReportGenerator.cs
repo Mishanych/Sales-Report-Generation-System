@@ -2,7 +2,7 @@
 
 namespace ReportSystem.Application.Abstractions;
 
-public interface IReportGenerator
+public interface IPdfReportGenerator
 {
     Task<byte[]> GenerateReportAsync(PdfReportModel reportModel, CancellationToken cancellationToken = default);
 }

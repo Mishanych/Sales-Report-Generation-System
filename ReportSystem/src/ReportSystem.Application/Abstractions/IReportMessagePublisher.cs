@@ -1,4 +1,4 @@
-﻿using ReportSystem.Application.Models;
+﻿using ReportSystem.Contracts;
 
 namespace ReportSystem.Application.Abstractions;
 

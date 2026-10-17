@@ -1,22 +1,32 @@
 ﻿using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using ReportSystem.Application.Abstractions;
-using ReportSystem.Application.Models;
+using ReportSystem.Contracts;
 using ReportSystem.Infrastructure.Messaging.Constants;
-using ReportSystem.Worker.Publishers;
+using ReportSystem.Infrastructure.Messaging.Options;
+using ReportSystem.Infrastructure.Messaging.Publishers;
 
 namespace ReportSystem.Worker.Consumers;
 
 public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDisposable
 {
     private const int MaxRetryAttempts = 3;
+    private const string DeathHeader = "x-death";
+    private const string DeathQueueField = "queue";
+    private const string DeathReasonField = "reason";
+    private const string DeathCountField = "count";
+    private const string RejectedReason = "rejected";
+    
     private readonly IServiceProvider _serviceProvider;
+    private readonly RabbitMqOptions _options;
 
-    public RabbitReportMessageConsumer(IChannel channel, IServiceProvider serviceProvider) : base(channel)
+    public RabbitReportMessageConsumer(IChannel channel, IServiceProvider serviceProvider, IOptions<RabbitMqOptions> options) : base(channel)
     {
         _serviceProvider = serviceProvider;
+        _options = options.Value;
         ReceivedAsync += OnMessageReceivedAsync;
     }
 
@@ -27,6 +37,7 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
 
         using var scope = _serviceProvider.CreateScope();
         var statusPublisher = scope.ServiceProvider.GetRequiredService<IReportStatusPublisher>();
+        var reportGenerationService = scope.ServiceProvider.GetRequiredService<IReportGenerationService>();
 
         Guid currentReportId = TryExtractReportId(deliverEventArgs.BasicProperties.Headers);
         int retryCount = GetRetryCount(deliverEventArgs.BasicProperties.Headers);
@@ -50,7 +61,7 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
                 await statusPublisher.PublishStartedAsync(currentReportId, cancellationToken);
             }
 
-            string fileName = await CreateReport(scope, message, cancellationToken);
+            string fileName = await reportGenerationService.GenerateAsync(message, cancellationToken);
             await statusPublisher.PublishCompletedAsync(message.ReportId, fileName, cancellationToken);
 
             await Channel.BasicAckAsync(deliveryTag: deliverEventArgs.DeliveryTag, multiple: false,
@@ -85,27 +96,6 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
         }
     }
 
-    private async Task<string> CreateReport(IServiceScope scope, GenerateReportRequested message, CancellationToken cancellationToken)
-    {
-        var calculationService = scope.ServiceProvider.GetRequiredService<IReportCalculationService>();
-        var pdfReportGenerator = scope.ServiceProvider.GetRequiredService<IReportGenerator>();
-        var reportFileStorage = scope.ServiceProvider.GetRequiredService<IReportFileStorage>();
-        
-        var reportCalculatedData = calculationService.GetReportCalculatedData(message.Items);
-
-        PdfReportModel pdfReportModel = new PdfReportModel(
-            message.ReportName,
-            message.ReportStartDate,
-            message.ReportEndDate,
-            reportCalculatedData);
-
-        byte[] pdfData = await pdfReportGenerator.GenerateReportAsync(pdfReportModel, cancellationToken);
-        string fileName = $"{message.ReportId}.pdf";
-        await reportFileStorage.SaveAsync(fileName, pdfData, cancellationToken);
-        
-        return fileName;
-    }
-
     public ValueTask DisposeAsync()
     {
         ReceivedAsync -= OnMessageReceivedAsync;
@@ -129,11 +119,23 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
     
     private int GetRetryCount(IDictionary<string, object?>? headers)
     {
-        if (headers != null && headers.TryGetValue("x-death", out var xDeath) && xDeath is IList<object> list && list.Count > 0)
+        if (headers != null && headers.TryGetValue(DeathHeader, out var xDeath) && xDeath is IList<object> deaths && deaths.Count > 0)
         {
-            if (list[0] is IDictionary<string, object> entry && entry.TryGetValue("count", out var count))
+            foreach (var value in deaths)
             {
-                return Convert.ToInt32(count);
+                if (value is not IDictionary<string, object> entry)
+                    continue;
+
+                entry.TryGetValue(DeathQueueField, out var queueValue);
+                entry.TryGetValue(DeathReasonField, out var reasonValue);
+                entry.TryGetValue(DeathCountField, out var countValue);
+
+                if (ReadText(queueValue) == _options.ReportGenerationQueue &&
+                    ReadText(reasonValue) == RejectedReason &&
+                    countValue is not null)
+                {
+                    return Convert.ToInt32(countValue);
+                }
             }
         }
         return 0;
@@ -152,4 +154,11 @@ public class RabbitReportMessageConsumer : AsyncEventingBasicConsumer, IAsyncDis
     
         await Channel.BasicAckAsync(args.DeliveryTag, multiple: false, cancellationToken: CancellationToken.None);
     }
+    
+    private static string? ReadText(object? value) => value switch
+    {
+        byte[] bytes => Encoding.UTF8.GetString(bytes),
+        string text => text,
+        _ => null
+    };
 }

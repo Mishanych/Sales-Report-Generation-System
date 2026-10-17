@@ -1,4 +1,4 @@
-﻿namespace ReportSystem.Application.Models;
+﻿namespace ReportSystem.Contracts;
 
 public record GenerateReportRequested(
     Guid ReportId,

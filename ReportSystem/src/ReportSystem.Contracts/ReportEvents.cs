@@ -1,4 +1,4 @@
-﻿namespace ReportSystem.Application.Models;
+﻿namespace ReportSystem.Contracts;
 
 public record ReportGenerationStarted(Guid ReportId, DateTime ReportStartedOn);
 public record ReportGenerationCompleted(Guid ReportId, string Filename, DateTime ReportCompletedOn);

@@ -2,11 +2,10 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using ReportSystem.Application.Models;
-using ReportSystem.Infrastructure.Messaging;
+using ReportSystem.Contracts;
 using ReportSystem.Infrastructure.Messaging.Options;
 
-namespace ReportSystem.Worker.Publishers;
+namespace ReportSystem.Infrastructure.Messaging.Publishers;
 
 public class ReportStatusPublisher : IReportStatusPublisher
 {

@@ -1,6 +1,6 @@
 ﻿using ReportSystem.Application.Abstractions;
 using ReportSystem.Application.Models;
-using ReportSystem.Domain.Entities;
+using ReportSystem.Contracts;
 
 namespace ReportSystem.Application.Reports;
 

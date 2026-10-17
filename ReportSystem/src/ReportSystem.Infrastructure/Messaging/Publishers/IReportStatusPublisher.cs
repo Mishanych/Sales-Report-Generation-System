@@ -1,6 +1,4 @@
-﻿using ReportSystem.Application.Reports;
-
-namespace ReportSystem.Worker.Publishers;
+﻿namespace ReportSystem.Infrastructure.Messaging.Publishers;
 
 public interface IReportStatusPublisher
 {

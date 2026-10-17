@@ -25,6 +25,10 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
             .HasConversion<string>()
             .HasMaxLength(50);
         
+        builder.Property(r=>r.FailureReason)
+            .IsRequired(false)
+            .HasMaxLength(300);
+        
         builder.HasMany(r=>r.Items)
             .WithOne()
             .HasForeignKey("ReportId")

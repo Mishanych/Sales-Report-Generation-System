@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using ReportSystem.Infrastructure.Messaging.Handlers;

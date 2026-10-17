@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using ReportSystem.Infrastructure.Messaging.Options;
 

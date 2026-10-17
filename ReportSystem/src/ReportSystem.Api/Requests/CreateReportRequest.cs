@@ -1,4 +1,4 @@
-﻿namespace ReportSystem.Api.Contracts.Requests;
+﻿namespace ReportSystem.Api.Requests;
 
 public record CreateReportRequest(
     string Name,

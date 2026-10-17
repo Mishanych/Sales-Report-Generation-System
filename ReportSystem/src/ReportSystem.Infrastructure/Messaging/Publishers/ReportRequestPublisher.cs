@@ -3,11 +3,11 @@ using System.Text.Json;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using ReportSystem.Application.Abstractions;
-using ReportSystem.Application.Models;
+using ReportSystem.Contracts;
 using ReportSystem.Infrastructure.Messaging.Constants;
 using ReportSystem.Infrastructure.Messaging.Options;
 
-namespace ReportSystem.Infrastructure.Messaging;
+namespace ReportSystem.Infrastructure.Messaging.Publishers;
 
 public class ReportRequestPublisher : IReportMessagePublisher
 {

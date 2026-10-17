@@ -1,36 +1,30 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Options;
 using ReportSystem.Application.Abstractions;
-using ReportSystem.Application.Models;
+using ReportSystem.Contracts;
 using ReportSystem.Infrastructure.Messaging.Options;
 
 namespace ReportSystem.Infrastructure.Messaging.Handlers;
 
 public class ReportGenerationCompletedEventHandler : IReportStatusEventHandler
 {
-    private readonly IReportRepository _repository;
+    private readonly IReportStatusService _reportStatusService;
     public string RoutingKey { get; }
 
-    public ReportGenerationCompletedEventHandler(IReportRepository repository, IOptions<RabbitMqOptions> options)
+    public ReportGenerationCompletedEventHandler(IReportStatusService reportStatusService, IOptions<RabbitMqOptions> options)
     {
-        _repository = repository;
+        _reportStatusService = reportStatusService;
         RoutingKey = options.Value.ReportCompletedRoutingKey;
     }
     
     public async Task HandleAsync(string jsonPayload, CancellationToken cancellationToken)
     {
-        var reportEvent = JsonSerializer.Deserialize<ReportGenerationCompleted>(jsonPayload);
-        if (reportEvent == null) return;
-
-        var report = await _repository.GetReportByIdAsync(reportEvent.ReportId, cancellationToken);
-        if (report != null)
-        {
-            report.MarkAsCompleted(reportEvent.Filename);
-            await _repository.UpdateReportAsync(report, cancellationToken);
-        }
-        else
-        {
-            // TODO: add logger
-        }
+        var message = JsonSerializer.Deserialize<ReportGenerationCompleted>(jsonPayload);
+        if (message == null) return;
+        
+        await _reportStatusService.MarkCompletedAsync(
+            message.ReportId,
+            message.Filename,
+            cancellationToken);
     }
 }

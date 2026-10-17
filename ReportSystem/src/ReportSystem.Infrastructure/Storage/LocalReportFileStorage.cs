@@ -1,4 +1,5 @@
-﻿using ReportSystem.Application.Abstractions;
+﻿using Microsoft.Extensions.Configuration;
+using ReportSystem.Application.Abstractions;
 
 namespace ReportSystem.Infrastructure.Storage;
 

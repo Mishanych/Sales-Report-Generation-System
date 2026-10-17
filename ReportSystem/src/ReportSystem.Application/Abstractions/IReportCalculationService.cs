@@ -1,5 +1,5 @@
-﻿using ReportSystem.Application.Models;
-using ReportSystem.Application.Reports;
+﻿using ReportSystem.Application.Reports;
+using ReportSystem.Contracts;
 
 namespace ReportSystem.Application.Abstractions;
 

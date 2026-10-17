@@ -3,10 +3,11 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using ReportSystem.Application.Abstractions;
 using ReportSystem.Application.Models;
+using Document = QuestPDF.Fluent.Document;
 
 namespace ReportSystem.Infrastructure.Pdf;
 
-public class PdfReportGenerator : IReportGenerator
+public class PdfReportGenerator : IPdfReportGenerator
 {
     public PdfReportGenerator()
     {

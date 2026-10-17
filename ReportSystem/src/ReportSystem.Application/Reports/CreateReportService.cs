@@ -1,8 +1,7 @@
-﻿using ReportSystem.Api.Contracts.Requests;
-using ReportSystem.Application.Abstractions;
+﻿using ReportSystem.Application.Abstractions;
 using ReportSystem.Application.Models;
+using ReportSystem.Contracts;
 using ReportSystem.Domain.Entities;
-using ReportSystem.Domain.Enums;
 
 namespace ReportSystem.Application.Reports;
 
@@ -17,7 +16,7 @@ public class CreateReportService
         _reportMessagePublisher = reportMessagePublisher;
     }
     
-    public async Task CreateReport(CreateReportRequest request, CancellationToken cancellationToken =  default)
+    public async Task CreateReport(CreateReportInput request, CancellationToken cancellationToken =  default)
     {
         var report = new Report(
             Guid.NewGuid(),
@@ -27,14 +26,15 @@ public class CreateReportService
             string.Empty,
             request.Items.Select(item =>
                 {
-                    var category = Enum.TryParse<Category>(item.Category, ignoreCase: true, out var parsedCategory)
+                    // TODO: it will be used in API
+                    /*var category = Enum.TryParse<Category>(item.Category, ignoreCase: true, out var parsedCategory)
                         ? parsedCategory
-                        : Category.None;
+                        : Category.None;*/
 
                     return new ReportItem(
                         Guid.NewGuid(),
                         item.ProductName,
-                        category,
+                        item.Category,
                         item.Quantity,
                         item.Currency,
                         item.UnitPrice);

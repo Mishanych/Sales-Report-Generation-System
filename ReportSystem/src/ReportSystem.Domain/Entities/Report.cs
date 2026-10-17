@@ -10,6 +10,7 @@ public class Report
     public DateTime PeriodEnd { get; private set; }
     public ReportStatus Status { get; private set; }
     public string ReportFileName { get; private set; }
+    public string? FailureReason { get; private set; }
     
     public IReadOnlyCollection<ReportItem> Items => _items.AsReadOnly();
     private readonly List<ReportItem> _items;
@@ -27,6 +28,7 @@ public class Report
 
     public void MarkAsProcessing()
     {
+        FailureReason = null;
         Status = ReportStatus.Processing;
     }
 
@@ -38,6 +40,7 @@ public class Report
 
     public void MarkAsFailed(string errorMessage)
     {
+        FailureReason = errorMessage;
         Status = ReportStatus.Failed;
     }
 }
