@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ReportSystem.Application.Abstractions;
 using ReportSystem.Domain.Entities;
+using ReportSystem.Domain.Enums;
 
 namespace ReportSystem.Infrastructure.Persistence;
 
@@ -30,5 +31,20 @@ public class ReportRepository : IReportRepository
         return await _dbContext.Reports
             .Include(r => r.Items)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken: cancellationToken);
+    }
+
+    public async Task<List<Report>> GetAllReports(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Reports
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<Report>> GetAllReportsByStatus(ReportStatus reportStatus, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Reports
+            .Where(r => r.Status == reportStatus)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
     }
 }

@@ -11,6 +11,7 @@ public class Report
     public ReportStatus Status { get; private set; }
     public string ReportFileName { get; private set; }
     public string? FailureReason { get; private set; }
+    public DateTime CreatedAtUtc { get; private set; }
     
     public IReadOnlyCollection<ReportItem> Items => _items.AsReadOnly();
     private readonly List<ReportItem> _items;
@@ -24,6 +25,7 @@ public class Report
         ReportFileName = reportFileName;
         _items = items;
         Status = ReportStatus.Queued;
+        CreatedAtUtc = DateTime.UtcNow;
     }
 
     public void MarkAsProcessing()

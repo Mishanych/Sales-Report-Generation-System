@@ -16,7 +16,7 @@ public class CreateReportService
         _reportMessagePublisher = reportMessagePublisher;
     }
     
-    public async Task CreateReport(CreateReportInput request, CancellationToken cancellationToken =  default)
+    public async Task<Guid> CreateReport(CreateReportInput request, CancellationToken cancellationToken =  default)
     {
         var report = new Report(
             Guid.NewGuid(),
@@ -26,11 +26,6 @@ public class CreateReportService
             string.Empty,
             request.Items.Select(item =>
                 {
-                    // TODO: it will be used in API
-                    /*var category = Enum.TryParse<Category>(item.Category, ignoreCase: true, out var parsedCategory)
-                        ? parsedCategory
-                        : Category.None;*/
-
                     return new ReportItem(
                         Guid.NewGuid(),
                         item.ProductName,
@@ -61,5 +56,7 @@ public class CreateReportService
             reportItemDtos,
             DateTime.UtcNow);
         await _reportMessagePublisher.PublishReportRequestedAsync(message, cancellationToken);
+
+        return report.Id;
     }
 }

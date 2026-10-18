@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using ReportSystem.Application.Abstractions;
 
 namespace ReportSystem.Infrastructure.Storage;
@@ -7,10 +8,12 @@ public class LocalReportFileStorage : IReportFileStorage
 {
     private readonly string _storagePath;
     
-    public LocalReportFileStorage(IConfiguration configuration)
+    public LocalReportFileStorage(IConfiguration configuration, IHostEnvironment environment)
     {
         var relativePath = configuration["FileStorage:Path"] ?? "storage/reports";
-        _storagePath = Path.Combine(AppContext.BaseDirectory, relativePath);
+        _storagePath = Path.GetFullPath(
+            relativePath,
+            environment.ContentRootPath);
         
         if (!Directory.Exists(_storagePath))
         {
@@ -32,14 +35,7 @@ public class LocalReportFileStorage : IReportFileStorage
 
     public async Task<byte[]> ReadAsync(string fileName, CancellationToken cancellationToken = default)
     {
-        var fullPath = GetFullPath(fileName);
-
-        if (!File.Exists(fullPath))
-        {
-            throw new FileNotFoundException($"Report file '{fileName}' was not found.", fullPath);
-        }
-
-        return await File.ReadAllBytesAsync(fullPath, cancellationToken);
+        return await File.ReadAllBytesAsync(GetFullPath(fileName), cancellationToken);
     }
     
     private string GetFullPath(string fileName)

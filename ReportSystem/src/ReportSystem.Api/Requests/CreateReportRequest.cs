@@ -4,5 +4,5 @@ public record CreateReportRequest(
     string Name,
     DateTime PeriodStart,
     DateTime PeriodEnd,
-    List<CreateReportItemRequest> Items
+    List<CreateReportItemRequest?>? Items
 );
