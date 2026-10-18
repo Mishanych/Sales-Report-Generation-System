@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ReportSystem.Api.ErrorHandling;
 using ReportSystem.Application.Abstractions;
 using ReportSystem.Application.Reports;
 using ReportSystem.Infrastructure.Messaging;
@@ -43,6 +44,9 @@ builder.Services.AddDbContext<ReportDbContext>(options =>
 builder.Services.AddHostedService<RabbitMqTopologyInitializer>();
 builder.Services.AddHostedService<ReportStatusConsumerService>();
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -51,7 +55,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
+
 app.MapControllers();
 app.Run();

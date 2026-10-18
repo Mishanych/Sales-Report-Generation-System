@@ -15,8 +15,4 @@
       <ProjectReference Include="..\ReportSystem.Infrastructure\ReportSystem.Infrastructure.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="ErrorHandling\" />
-    </ItemGroup>
-
 </Project>
