@@ -27,6 +27,13 @@ public class Report
         Status = ReportStatus.Queued;
         CreatedAtUtc = DateTime.UtcNow;
     }
+    
+    private Report()
+    {
+        Name = string.Empty;
+        ReportFileName = string.Empty;
+        _items = new List<ReportItem>();
+    }
 
     public void MarkAsProcessing()
     {

@@ -37,9 +37,15 @@ builder.Services.AddScoped<IReportStatusEventHandler,
     ReportGenerationFailedEventHandler>();
 
 
+var reportsConnectionString = builder.Configuration.GetConnectionString("ReportsDatabase");
+if (string.IsNullOrWhiteSpace(reportsConnectionString))
+{
+    throw new InvalidOperationException(
+        "ConnectionStrings:ReportsDatabase must be configured.");
+}
+
 builder.Services.AddDbContext<ReportDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("ReportsDatabase")));
+    options.UseSqlServer(reportsConnectionString));
 
 builder.Services.AddHostedService<RabbitMqTopologyInitializer>();
 builder.Services.AddHostedService<ReportStatusConsumerService>();
@@ -53,6 +59,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+        options.SwaggerEndpoint("/openapi/v1.json", "Report System API v1"));
 }
 
 app.UseExceptionHandler();
